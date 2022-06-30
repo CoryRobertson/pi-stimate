@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use std::fmt;
 use std::fmt::{Formatter};
 use eframe::egui;
@@ -22,7 +24,7 @@ impl Default for MyApp {
             points_generated: 0,
             pi_estimate: 0.0,
             points_per_frame: 1,
-            points: [Point{ x: 0, y: 0, inside: false } ; 10000]
+            points: [Point{ x: 0, y: 0, inside: true } ; 10000]
         }
     }
 }
@@ -31,16 +33,15 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ctx.request_repaint();
-            let pi_text = format!("pi estimate: {}", &self.pi_estimate);
-            let points_text = format!("monte carlo points: {}", &self.points_generated);
-            let points_in_circle_text = format!("monte carlo points in circle: {}", &self.points_in_circle);
+            let pi_text = format!("Pi estimate: {}", &self.pi_estimate);
+            let points_text = format!("Monte carlo points: {}", &self.points_generated);
+            let points_in_circle_text = format!("Monte carlo points in circle: {}", &self.points_in_circle);
             ui.heading(pi_text);
             ui.heading(points_text);
             ui.heading(points_in_circle_text);
 
             ui.add(egui::Slider::new(&mut self.points_per_frame, 1..=1000));
             //let mut points: Vec<Point> = Vec::new();
-            // let start = SystemTime::now();
             // let mut points_in_circle = 0;
 
             let zero_point = Point{ x: 0, y: 0, inside: false };
@@ -53,9 +54,6 @@ impl eframe::App for MyApp {
                 let mut point = Point{x: rx, y: ry, inside: false };
                 self.points_generated = self.points_generated + 1;
 
-                // points.push(Point{ x: rx, y: ry });
-                // points.push(Point{ x: 99, y: 99 });
-                // println!("{}", points[a]);
                 if point_distance(&point, &zero_point) < 100.0 {
                     // println!("point was in circle!");
                     self.points_in_circle = self.points_in_circle + 1;
@@ -74,20 +72,11 @@ impl eframe::App for MyApp {
                     false => {Color32::from_rgb(125,125,125)}
                 };
 
-                ui.painter().circle_filled(Pos2::new(x, y), 4.0, color);
+                ui.painter().circle_filled(Pos2::new(x, y), 3.5, color);
 
             }
 
-            // let pi_estimate: f64 = (points_in_circle as f64 / points_to_generate_per_frame as f64) * 4.0;
             self.pi_estimate = (self.points_in_circle as f64 / self.points_generated as f64) * 4.0;
-            //println!("{}", self.pi_estimate);
-            // let end = SystemTime::now();
-
-            // let diff = end.duration_since(start).unwrap();
-            // println!("{}", diff.as_secs_f32());
-            // println!("len {}",points.len());
-            // println!("points in circle {}", points_in_circle);
-
 
         });
     }
@@ -100,9 +89,8 @@ fn main() {
     options.resizable = false;
     options.initial_window_size = Option::from(Vec2::new(500.0, 500.0));
 
-
     eframe::run_native(
-        "My egui App",
+        "Pi-stimate",
         options,
         Box::new(|_cc| Box::new(MyApp::default())),
     );
@@ -119,7 +107,7 @@ struct Point {
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Point: {}, {}", self.x, self.y)
+        write!(f, "Point: {}, {}, {}", self.x, self.y, self.inside)
     }
 }
 
