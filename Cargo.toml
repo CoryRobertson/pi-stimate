@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 #egui = "0.18.1"
-#eframe = "0.18.0"
+eframe = "0.18.0"
 rand = "0.8.5"
 
 [profile.release]

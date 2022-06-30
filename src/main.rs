@@ -1,39 +1,90 @@
 use std::fmt;
-use std::fmt::Formatter;
-use std::time::SystemTime;
+use std::fmt::{Formatter};
+use eframe::egui;
 use rand::Rng;
+use crate::egui::Vec2;
 
-fn main() {
-    //let mut points: Vec<Point> = Vec::new();
-    let start = SystemTime::now();
-    let mut points_in_circle = 0;
+struct MyApp {
+    points_in_circle: u64,
+    points_generated: u64,
+    pi_estimate: f64,
+}
 
-    let zero_point = Point{ x: 0, y: 0 };
 
-    let points_to_generate = 10000;
-
-    for _ in 0..points_to_generate {
-        let rx: i64 = rand::thread_rng().gen_range(-100..100);
-        let ry: i64 = rand::thread_rng().gen_range(-100..100);
-        let point = Point{x: rx, y: ry};
-        // points.push(Point{ x: rx, y: ry });
-        // points.push(Point{ x: 99, y: 99 });
-        // println!("{}", points[a]);
-        if point_distance(&point, &zero_point) < 100.0 {
-            // println!("point was in circle!");
-            points_in_circle = points_in_circle + 1;
+impl Default for MyApp {
+    fn default() -> Self {
+        Self {
+            points_in_circle: 0,
+            points_generated: 0,
+            pi_estimate: 0.0
         }
     }
+}
 
-    let pi_estimate: f64 = (points_in_circle as f64 / points_to_generate as f64) * 4.0;
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ctx.request_repaint();
+            let pi_text = format!("pi estimate: {}", &self.pi_estimate);
+            let points_text = format!("monte carlo points: {}", &self.points_generated);
+            let points_in_circle_text = format!("monte carlo points in circle: {}", &self.points_in_circle);
+            ui.heading(pi_text);
+            ui.heading(points_text);
+            ui.heading(points_in_circle_text);
+            //let mut points: Vec<Point> = Vec::new();
+            // let start = SystemTime::now();
+            // let mut points_in_circle = 0;
 
-    println!("{}", pi_estimate);
-    let end = SystemTime::now();
 
-    let diff = end.duration_since(start).unwrap();
-    println!("{}", diff.as_secs_f32());
-    // println!("len {}",points.len());
-    // println!("points in circle {}", points_in_circle);
+
+            let zero_point = Point{ x: 0, y: 0 };
+
+            let points_to_generate_per_frame = 10;
+
+            for _ in 0..points_to_generate_per_frame {
+                let rx: i64 = rand::thread_rng().gen_range(-100..100);
+                let ry: i64 = rand::thread_rng().gen_range(-100..100);
+                let point = Point{x: rx, y: ry};
+                self.points_generated = self.points_generated + 1;
+
+                // points.push(Point{ x: rx, y: ry });
+                // points.push(Point{ x: 99, y: 99 });
+                // println!("{}", points[a]);
+                if point_distance(&point, &zero_point) < 100.0 {
+                    // println!("point was in circle!");
+                    self.points_in_circle = self.points_in_circle + 1;
+                }
+            }
+
+            // let pi_estimate: f64 = (points_in_circle as f64 / points_to_generate_per_frame as f64) * 4.0;
+            self.pi_estimate = (self.points_in_circle as f64 / self.points_generated as f64) * 4.0;
+            //println!("{}", self.pi_estimate);
+            // let end = SystemTime::now();
+
+            // let diff = end.duration_since(start).unwrap();
+            // println!("{}", diff.as_secs_f32());
+            // println!("len {}",points.len());
+            // println!("points in circle {}", points_in_circle);
+
+
+        });
+    }
+}
+
+fn main() {
+
+    let mut options = eframe::NativeOptions::default();
+
+    options.resizable = false;
+    options.initial_window_size = Option::from(Vec2::new(300.0, 300.0));
+
+
+    eframe::run_native(
+        "My egui App",
+        options,
+        Box::new(|_cc| Box::new(MyApp::default())),
+    );
+
 
 }
 
